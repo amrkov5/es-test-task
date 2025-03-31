@@ -12,6 +12,7 @@ export function Text({
     <StyledText
       className={className}
       style={style}
+      lineHeight={lineHeight}
       _color={color}
       _fontSize={fontSize}
     >
