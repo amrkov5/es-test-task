@@ -10,23 +10,31 @@ export function PopupEpisodes({ episodes }) {
   const [isFetching, setIsFetching] = useState(true);
 
   useEffect(() => {
-    if (!episodes?.length) {
-      return;
-    }
+    const getEpisodes = async () => {
+      if (!episodes?.length) {
+        setIsFetching(false);
 
-    setIsFetching(true);
+        return;
+      }
 
-    const episodesIds = episodes.map((ep) => ep.match(/\d+$/)[0]);
+      setIsFetching(true);
 
-    axios
-      .get(`${API_EPISODES_URL}/${episodesIds.join(',')}`)
-      .then(({ data }) => {
-        if (episodes.length === 1) {
-          setSeries([data]);
-        } else {
-          setSeries(data);
-        }
-      });
+      const episodesIds = episodes.map((ep) => ep.match(/\d+$/)[0]);
+
+      axios
+        .get(`${API_EPISODES_URL}/${episodesIds.join(',')}`)
+        .then(({ data }) => {
+          setIsFetching(false);
+
+          if (episodes.length === 1) {
+            setSeries([data]);
+          } else {
+            setSeries(data);
+          }
+        });
+    };
+
+    getEpisodes();
   }, [episodes]);
 
   if (isFetching) {

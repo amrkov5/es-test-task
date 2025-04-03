@@ -9,6 +9,13 @@ body {
   background-color: #001832;
 }
 
-html, body, #root {
+html,
+body,
+#root {
   height: 100%;
+}
+
+.no-scroll {
+  padding-right: 15px;
+  overflow: hidden;
 }

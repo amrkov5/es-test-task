@@ -2,7 +2,7 @@ import styled, { css } from 'styled-components';
 import { PopupEpisodes } from './PopupEpisodes';
 import { PopupHeader } from './PopupHeader';
 import { PopupInfo } from './PopupInfo';
-import { useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
 
 export function Popup({ settings: { visible, content = {} }, setSettings }) {
   const {
@@ -14,12 +14,15 @@ export function Popup({ settings: { visible, content = {} }, setSettings }) {
     type,
     origin,
     location,
-    episode: episodes
+    episode
   } = content;
-
   const togglePopup = useCallback(
     (e) => {
-      if (e.currentTarget !== e.target) {
+      if (e.currentTarget !== e.target && e.type === 'click') {
+        return;
+      }
+
+      if (e.key !== 'Escape' && e.type === 'keydown') {
         return;
       }
 
@@ -27,9 +30,23 @@ export function Popup({ settings: { visible, content = {} }, setSettings }) {
         ...prevState,
         visible: !prevState.visible
       }));
+
+      document.body.classList.remove('no-scroll');
     },
     [setSettings]
   );
+
+  useEffect(() => {
+    if (visible) {
+      document.body.classList.add('no-scroll');
+
+      document.addEventListener('keydown', togglePopup);
+
+      return () => {
+        document.removeEventListener('keydown', togglePopup);
+      };
+    }
+  }, [visible, togglePopup]);
 
   return (
     <PopupContainer visible={visible} onClick={togglePopup}>
@@ -47,7 +64,7 @@ export function Popup({ settings: { visible, content = {} }, setSettings }) {
 
         <PopupInfo origin={origin} location={location} />
 
-        <PopupEpisodes episodes={episodes} />
+        <PopupEpisodes episodes={episode} />
       </StyledPopup>
     </PopupContainer>
   );

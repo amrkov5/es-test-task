@@ -6,41 +6,20 @@ import { useCallback } from 'react';
 
 // TODO: Refactor the Card component
 export function Card(props) {
-  const {
-    status,
-    name,
-    species,
-    type,
-    gender,
-    image,
-    origin,
-    location,
-    onClickHandler
-  } = props;
+  const { status, name, species, type, gender, image, onClickHandler } = props;
+
   const cardOnClickHandler = useCallback(() => {
     onClickHandler({
       visible: true,
-      content: { status, name, species, type, gender, image, origin, location }
+      content: { ...props }
     });
-  }, [
-    onClickHandler,
-    status,
-    name,
-    species,
-    type,
-    gender,
-    image,
-    origin,
-    location
-  ]);
+  }, [onClickHandler, props]);
 
   return (
     <StyledCard onClick={cardOnClickHandler}>
       <CardImg src={image} alt={name} />
-
       <CardInfo>
         <CardTitle name={name} gender={gender} />
-
         <CardStatus status={status} species={species} type={type} />
       </CardInfo>
     </StyledCard>
@@ -48,29 +27,25 @@ export function Card(props) {
 }
 
 export function CardTitle({ name, gender, className }) {
-  const Icon = (() => {
-    if (gender === 'Male') {
-      return <Male width={20} height={20} fill="#33b3c8" title="Male" />;
-    }
+  // or use switch
+  const icons = {
+    Male: <Male width={20} height={20} fill="#33b3c8" title="Male" />,
+    Female: <Female width={24} height={24} fill="pink" title="Female" />,
+    unknown: (
+      <Genderless width={24} height={24} fill="#999" title="Genderless" />
+    ),
+    Genderless: (
+      <Genderless width={24} height={24} fill="#999" title="Genderless" />
+    )
+  };
 
-    if (gender === 'Female') {
-      return <Female width={24} height={24} fill="pink" title="Female" />;
-    }
-
-    if (gender === 'unknown' || gender === 'Genderless') {
-      return (
-        <Genderless width={24} height={24} fill="#999" title="Genderless" />
-      );
-    }
-
-    return null;
-  })();
+  const icon = Object.keys(icons).includes(gender) ? icons[gender] : null;
 
   return (
     <CardTitleContainer className={className}>
       <StyledCardTitle className="card-title">{name}</StyledCardTitle>
 
-      <IconContainer>{Icon}</IconContainer>
+      <IconContainer>{icon}</IconContainer>
     </CardTitleContainer>
   );
 }
