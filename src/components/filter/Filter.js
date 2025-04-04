@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import styled from 'styled-components';
 import { gender, species, status } from './data';
+import { useData } from '../providers';
+
+const API_URL = 'https://rickandmortyapi.com/api/character/';
 
 export const FilterComponent = () => {
   const [selectedSpecies, setSelectedSpecies] = useState(null);
@@ -8,6 +11,7 @@ export const FilterComponent = () => {
   const [selectedGender, setSelectedGender] = useState(null);
   const [type, setType] = useState('');
   const [name, setName] = useState('');
+  const { setApiURL, setActivePage } = useData();
 
   const resetFilter = useCallback(() => {
     setSelectedSpecies(null);
@@ -15,7 +19,12 @@ export const FilterComponent = () => {
     setSelectedGender(null);
     setType('');
     setName('');
-  }, []);
+
+    window.history.pushState({}, '', '/');
+
+    setApiURL(API_URL);
+    setActivePage(0);
+  }, [setApiURL, setActivePage]);
 
   const setInput = useCallback(
     (inputFn) => (event) => {
@@ -23,6 +32,70 @@ export const FilterComponent = () => {
     },
     []
   );
+
+  const applyFilter = useCallback(() => {
+    const searchParams = new URLSearchParams();
+    if (selectedGender)
+      searchParams.set(
+        'gender',
+        selectedGender.charAt(0).toUpperCase() + selectedGender.slice(1)
+      );
+    if (selectedSpecies)
+      searchParams.set(
+        'species',
+        selectedSpecies.charAt(0).toUpperCase() + selectedSpecies.slice(1)
+      );
+    if (selectedStatus)
+      searchParams.set(
+        'status',
+        selectedStatus.charAt(0).toUpperCase() + selectedStatus.slice(1)
+      );
+    if (name) searchParams.set('name', name);
+    if (type) searchParams.set('type', type);
+
+    const newURL = searchParams.toString()
+      ? `?${searchParams.toString()}`
+      : '/';
+
+    window.history.pushState({}, '', newURL);
+    setApiURL(`${API_URL}${newURL}`);
+    setActivePage(0);
+  }, [
+    selectedGender,
+    selectedSpecies,
+    selectedStatus,
+    name,
+    type,
+    setApiURL,
+    setActivePage
+  ]);
+
+  useEffect(() => {
+    const searchString = window.location.search;
+    const searchObj = new URLSearchParams(searchString);
+    const genderStr = searchObj.get('gender')
+      ? searchObj.get('gender').toLowerCase()
+      : null;
+    const speciesStr = searchObj.get('species')
+      ? searchObj.get('species').toLowerCase()
+      : null;
+    const statusStr = searchObj.get('status')
+      ? searchObj.get('status').toLowerCase()
+      : null;
+
+    setSelectedGender(
+      gender.includes(genderStr)
+        ? genderStr.charAt(0).toUpperCase() + genderStr.slice(1)
+        : null
+    );
+    setSelectedSpecies(species.includes(speciesStr) ? speciesStr : null);
+    setSelectedStatus(status.includes(statusStr) ? statusStr : null);
+    setName(searchObj.get('name') ? searchObj.get('name') : '');
+    setType(searchObj.get('type') ? searchObj.get('type') : '');
+
+    setApiURL(`${API_URL}?${searchObj.toString()}`);
+    setActivePage(0);
+  }, [setApiURL, setActivePage]);
 
   return (
     <FilterContainer>
@@ -59,7 +132,9 @@ export const FilterComponent = () => {
         ></FilterInput>
       </FilterLabel>
       <FilterBtnWrapper>
-        <FilterBtn isReset={false}>Apply</FilterBtn>
+        <FilterBtn isReset={false} onClick={applyFilter}>
+          Apply
+        </FilterBtn>
         <FilterBtn isReset onClick={resetFilter}>
           Reset
         </FilterBtn>
